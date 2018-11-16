@@ -1,0 +1,69 @@
+import scala.util.Random
+
+object CrossCorr {
+
+  /*
+  Data should be normalized
+
+  @data1 = time series, Array of double
+  @data2 = time series, Array of double
+  @maxdelay = should be siz of the times eries array
+
+  Function returns array of tuples (lag, correlation coefficient)
+
+  Reference: http://paulbourke.net/miscellaneous/correlate/
+
+ */
+
+  def calculateCrossCorrelation(data1:Array[Double], data2:Array[Double], maxdelay:Int):Array[(Int,Double)] = {
+
+    //val maxdelay = data1.size
+    val mean1 = data1.sum/data1.size
+    val mean2 = data2.sum/data2.size
+    val n = data1.size
+    // Calc denominator
+    val sx = data1.map(x => (x-mean1)*(x-mean1)).sum
+    val sy = data2.map(x => (x-mean2)*(x-mean2)).sum
+
+    val denom = Math.sqrt(sx*sy)
+
+    val corrCoef = (-maxdelay to maxdelay)
+      .map { delay =>
+        var sxy = 0.0
+        (0 to n-1).map{i =>
+          var j = i + delay
+
+//          // circular series
+//          while(j < 0 ) j += n
+//          j %= n
+//          sxy += (data1(i) - mean1) * (data2(j) - mean2)
+
+          if (j < 0 || j >= n)
+            sxy = sxy + ((data1(i) - mean1) * (-mean2))
+          else
+            sxy = sxy + (data1(i) - mean1) * (data2(j) - mean2)
+        }
+        (delay,sxy/denom)
+      }
+
+    return corrCoef.toArray
+
+  }
+
+  def main(args:Array[Double]): Unit ={
+
+    val data1 = Seq.fill(100)(Random.nextDouble()).toArray
+
+    val data2 = data1.map(_ + 0.10)
+
+    val cc = CrossCorr.calculateCrossCorrelation(normalize(data1), normalize(data2), 100)
+
+  }
+
+  def normalize(data:Array[Double]):Array[Double] = {
+    val max = data.max
+    val min = data.min
+    data.map(x => (x - min)/(max - min))
+  }
+
+}
