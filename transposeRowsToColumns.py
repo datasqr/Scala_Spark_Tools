@@ -1,3 +1,5 @@
+# Source: https://stackoverflow.com/questions/37864222/transpose-column-to-row-with-spark
+
 from itertools import chain
 from pyspark.sql import DataFrame
 from pyspark.sql import (
